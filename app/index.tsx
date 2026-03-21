@@ -1,7 +1,7 @@
 import SensorCard from '@/components/SensorCard';
 import { useSensores } from '@/hooks/useSensores';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -15,6 +15,22 @@ import {
 export default function Index() {
   const router = useRouter();
   const { sensores, actualizando, actualizarSensores, hayAlertas } = useSensores();
+  const [fechaHora, setFechaHora] = useState('');
+
+  useEffect(() => {
+    const actualizar = () => {
+      const ahora = new Date();
+      setFechaHora(ahora.toLocaleString('es-MX', {
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }));
+    };
+    actualizar();
+    const intervalo = setInterval(actualizar, 1000);
+    return () => clearInterval(intervalo);
+  }, []);
 
   const calidad = hayAlertas
     ? sensores.some(s => s.estado === 'Peligroso') ? 'Peligroso' : 'Malo'
@@ -33,6 +49,7 @@ export default function Index() {
       <View style={[styles.encabezado, { backgroundColor: colorEncabezado }]}>
         <Text style={styles.titulo}>🌿 Monitor de Calidad del Aire</Text>
         <Text style={styles.subtitulo}>Calidad general: {calidad}</Text>
+        <Text style={styles.fechaHora}>{fechaHora}</Text>
         {actualizando && (
           <ActivityIndicator color="#fff" style={{ marginTop: 6 }} />
         )}
@@ -65,7 +82,6 @@ export default function Index() {
           <SensorCard key={sensor.id} sensor={sensor} />
         ))}
 
-        {/* Botón manual de actualización */}
         <TouchableOpacity
           style={styles.botonActualizar}
           onPress={actualizarSensores}
@@ -99,6 +115,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffffffcc',
     marginTop: 4,
+  },
+  fechaHora: {
+    fontSize: 12,
+    color: '#ffffffaa',
+    marginTop: 2,
   },
   botonAlerta: {
     backgroundColor: '#dc3545',
