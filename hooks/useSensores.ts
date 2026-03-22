@@ -1,4 +1,14 @@
-import { useEffect, useState } from 'react';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useRef, useState } from 'react';
+
+// Configuración de cómo se muestran las notificaciones
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 export type EstadoCalidad = 'Bueno' | 'Moderado' | 'Malo' | 'Peligroso';
 
@@ -39,6 +49,30 @@ function calcularEstado(nombre: string, valor: number): EstadoCalidad {
     return 'Peligroso';
   }
   return 'Bueno';
+}
+
+// Función para pedir permisos de notificaciones
+async function pedirPermisos() {
+  const { status } = await Notifications.requestPermissionsAsync();
+  return status === 'granted';
+}
+
+// Función para enviar notificación cuando un sensor empeora
+async function enviarNotificacion(sensor: Sensor) {
+  const mensajes = {
+    Malo: `⚠️ ${sensor.nombre} en nivel MALO: ${sensor.valor} ${sensor.unidad}. Ventila el área.`,
+    Peligroso: `☠️ PELIGRO: ${sensor.nombre} crítico: ${sensor.valor} ${sensor.unidad}. ¡Acción inmediata!`,
+  };
+  const mensaje = mensajes[sensor.estado as 'Malo' | 'Peligroso'];
+  if (!mensaje) return;
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '🌿 Monitor Calidad del Aire',
+      body: mensaje,
+      sound: true,
+    },
+    trigger: null,
+  });
 }
 
 const sensoresIniciales: Sensor[] = [
@@ -87,12 +121,19 @@ const sensoresIniciales: Sensor[] = [
 export function useSensores() {
   const [sensores, setSensores] = useState<Sensor[]>(sensoresIniciales);
   const [actualizando, setActualizando] = useState(false);
+  // useRef para recordar estados anteriores sin causar re-renders
+  const estadosAnteriores = useRef<Record<string, EstadoCalidad>>({});
+
+  // Pedir permisos de notificaciones al iniciar la app
+  useEffect(() => {
+    pedirPermisos();
+  }, []);
 
   const actualizarSensores = () => {
     setActualizando(true);
     setTimeout(() => {
-      setSensores(prev =>
-        prev.map(sensor => {
+      setSensores(prev => {
+        const nuevos = prev.map(sensor => {
           let nuevoValor = sensor.valor;
           if (sensor.nombre === 'CO2') {
             nuevoValor = Math.max(350, Math.min(2000, sensor.valor + (Math.random() * 100 - 50)));
@@ -104,14 +145,27 @@ export function useSensores() {
             nuevoValor = Math.max(0, Math.min(100, sensor.valor + (Math.random() * 4 - 2)));
           }
           nuevoValor = Math.round(nuevoValor * 10) / 10;
+          const nuevoEstado = calcularEstado(sensor.nombre, nuevoValor);
           return {
             ...sensor,
             valor: nuevoValor,
-            estado: calcularEstado(sensor.nombre, nuevoValor),
+            estado: nuevoEstado,
             ultimaActualizacion: new Date().toLocaleTimeString(),
           };
-        })
-      );
+        });
+
+        // Revisar si algún sensor empeoró y enviar notificación
+        nuevos.forEach(sensor => {
+          const estadoAnterior = estadosAnteriores.current[sensor.id];
+          const empeoro =
+            (sensor.estado === 'Malo' && estadoAnterior !== 'Malo' && estadoAnterior !== 'Peligroso') ||
+            (sensor.estado === 'Peligroso' && estadoAnterior !== 'Peligroso');
+          if (empeoro) enviarNotificacion(sensor);
+          estadosAnteriores.current[sensor.id] = sensor.estado;
+        });
+
+        return nuevos;
+      });
       setActualizando(false);
     }, 800);
   };

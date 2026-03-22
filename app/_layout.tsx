@@ -12,6 +12,11 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen
+         name="splash"
+        options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
           name="index"
           options={{ headerShown: false }}
         />
