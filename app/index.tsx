@@ -57,7 +57,7 @@ export default function Index() {
     }, 6000);
 
     return () => { clearInterval(intervalo); clearTimeout(timer); };
-  }, []);
+  }, [mostrarSplash]);
 
   // Reloj
   useEffect(() => {
@@ -79,6 +79,15 @@ export default function Index() {
   const colorEncabezado = {
     Bueno: '#28a745', Moderado: '#ffc107', Malo: '#dc3545', Peligroso: '#7b0000',
   }[calidad];
+
+  // --- NUEVA MEJORA: Mensajes y Emojis según Calidad ---
+  const infoEstado = {
+    Bueno: { msg: "¡Aire limpio! Disfruta el día.", icono: "😊" },
+    Moderado: { msg: "Aire aceptable, ten precaución.", icono: "😐" },
+    Malo: { msg: "Evita actividades al aire libre.", icono: "😷" },
+    Peligroso: { msg: "¡Alerta! Aire altamente nocivo.", icono: "🚨" },
+  }[calidad];
+  // -----------------------------------------------------
 
   // SPLASH
   if (mostrarSplash) {
@@ -138,7 +147,8 @@ export default function Index() {
     <View style={styles.contenedor}>
       <View style={[styles.encabezado, { backgroundColor: colorEncabezado }]}>
         <Text style={styles.titulo}>🌿 AirWatch</Text>
-        <Text style={styles.subtitulo}>Calidad general: {calidad}</Text>
+        {/* LÍNEA MODIFICADA PARA MOSTRAR EL NUEVO MENSAJE */}
+        <Text style={styles.subtitulo}>{infoEstado.icono} {infoEstado.msg}</Text>
         <Text style={styles.fechaHora}>{fechaHora}</Text>
         {actualizando && <ActivityIndicator color="#fff" style={{ marginTop: 6 }} />}
       </View>
@@ -198,7 +208,7 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: '#f0f4f8' },
   encabezado: { paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20 },
   titulo: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  subtitulo: { fontSize: 14, color: '#ffffffcc', marginTop: 4 },
+  subtitulo: { fontSize: 14, color: '#ffffffcc', marginTop: 4, fontWeight: '600' },
   fechaHora: { fontSize: 12, color: '#ffffffaa', marginTop: 2 },
   botonAlerta: { backgroundColor: '#dc3545', margin: 16, marginBottom: 0, borderRadius: 10, padding: 12, alignItems: 'center' },
   textoAlerta: { color: '#fff', fontWeight: '700', fontSize: 14 },
