@@ -30,6 +30,14 @@ export default function Index() {
   const opacidadEslogan = useRef(new Animated.Value(0)).current;
   const opacidadApp = useRef(new Animated.Value(0)).current;
 
+  // 👉 NUEVO: función de saludo dinámico
+  const obtenerSaludo = () => {
+    const hora = new Date().getHours();
+    if (hora < 12) return 'Buenos días ☀️';
+    if (hora < 19) return 'Buenas tardes 🌤️';
+    return 'Buenas noches 🌙';
+  };
+
   // Splash animación
   useEffect(() => {
     if (!mostrarSplash) return;
@@ -64,7 +72,10 @@ export default function Index() {
     const actualizar = () => {
       const ahora = new Date();
       setFechaHora(ahora.toLocaleString('es-MX', {
-        weekday: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit',
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
       }));
     };
     actualizar();
@@ -77,7 +88,10 @@ export default function Index() {
     : sensores.some(s => s.estado === 'Moderado') ? 'Moderado' : 'Bueno';
 
   const colorEncabezado = {
-    Bueno: '#283fa7', Moderado: '#ff4d07', Malo: '#dc3535', Peligroso: '#7b0000',
+    Bueno: '#283fa7',
+    Moderado: '#ff4d07',
+    Malo: '#dc3535',
+    Peligroso: '#7b0000',
   }[calidad];
 
   // SPLASH
@@ -138,6 +152,10 @@ export default function Index() {
     <View style={styles.contenedor}>
       <View style={[styles.encabezado, { backgroundColor: colorEncabezado }]}>
         <Text style={styles.titulo}>🌿 AirWatch</Text>
+
+        {/* 👉 NUEVO SALUDO */}
+        <Text style={styles.saludo}>{obtenerSaludo()}</Text>
+
         <Text style={styles.subtitulo}>Calidad general: {calidad}</Text>
         <Text style={styles.fechaHora}>{fechaHora}</Text>
         {actualizando && <ActivityIndicator color="#fff" style={{ marginTop: 6 }} />}
@@ -152,14 +170,28 @@ export default function Index() {
       <ScrollView
         style={styles.lista}
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={actualizando} onRefresh={actualizarSensores} colors={['#28a745']} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={actualizando}
+            onRefresh={actualizarSensores}
+            colors={['#28a745']}
+          />
+        }
       >
         <Text style={styles.seccion}>Sensores activos</Text>
+
         {sensores.map(sensor => (
           <SensorCard key={sensor.id} sensor={sensor} />
         ))}
-        <TouchableOpacity style={styles.botonActualizar} onPress={actualizarSensores} disabled={actualizando}>
-          <Text style={styles.textoBoton}>{actualizando ? 'Actualizando...' : '🔄 Actualizar ahora'}</Text>
+
+        <TouchableOpacity
+          style={styles.botonActualizar}
+          onPress={actualizarSensores}
+          disabled={actualizando}
+        >
+          <Text style={styles.textoBoton}>
+            {actualizando ? 'Actualizando...' : '🔄 Actualizar ahora'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -198,6 +230,14 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: '#f0f4f8' },
   encabezado: { paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20 },
   titulo: { fontSize: 20, fontWeight: '800', color: '#fff' },
+
+  // 👉 NUEVO ESTILO
+  saludo: {
+    fontSize: 13,
+    color: '#ffffffcc',
+    marginTop: 2,
+  },
+
   subtitulo: { fontSize: 14, color: '#ffffffcc', marginTop: 4 },
   fechaHora: { fontSize: 12, color: '#ffffffaa', marginTop: 2 },
   botonAlerta: { backgroundColor: '#dc3545', margin: 16, marginBottom: 0, borderRadius: 10, padding: 12, alignItems: 'center' },
