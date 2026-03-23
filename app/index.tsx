@@ -77,13 +77,13 @@ export default function Index() {
     : sensores.some(s => s.estado === 'Moderado') ? 'Moderado' : 'Bueno';
 
   const colorEncabezado = {
-    Bueno: '#28a745', Moderado: '#ffc107', Malo: '#dc3545', Peligroso: '#7b0000',
+    Bueno: '#283fa7', Moderado: '#ff4d07', Malo: '#dc3535', Peligroso: '#7b0000',
   }[calidad];
 
   // SPLASH
   if (mostrarSplash) {
     return (
-      <LinearGradient colors={['#0a1628', '#0d2b4e', '#1a4a7a']} style={styles.splash}>
+      <LinearGradient colors={['#0a1628', '#07056d', '#1a4a7a']} style={styles.splash}>
         <View style={[styles.circulo, styles.circulo1]} />
         <View style={[styles.circulo, styles.circulo2]} />
 
@@ -120,7 +120,7 @@ export default function Index() {
         <View style={styles.barraContenedor}>
           <View style={styles.barraFondo}>
             <LinearGradient
-              colors={['#00d4ff', '#0099cc']}
+              colors={['#00a2ff', '#0070cc']}
               style={[styles.barraProgreso, { width: `${progreso}%` }]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             />
